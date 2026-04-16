@@ -171,6 +171,13 @@ plugins:
     api_key: "ragflow-xxx"
     # ragflow知识库id
     dataset_ids: ["123456789"]
+  # 创建待办事项插件的配置
+  create_todo:
+    # manager-api的地址，用于调用待办创建接口
+    # 注意：manager-api默认端口是8080，完整路径为 http://localhost:8080/todo/voice/create
+    manager_api_url: "http://localhost:8080"
+    # API密钥（如果manager-api需要认证）
+    api_key: ""
 # 声纹识别配置
 voiceprint:
   # 声纹接口地址
@@ -274,6 +281,8 @@ Intent:
       #- hass_get_state
       #- hass_set_state
       #- hass_play_music
+      # 待办事项功能
+      - create_todo
 
 Memory:
   mem0ai:
