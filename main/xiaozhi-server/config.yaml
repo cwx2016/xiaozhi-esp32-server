@@ -283,6 +283,7 @@ Intent:
       #- hass_play_music
       # 待办事项功能
       - create_todo
+      - get_todo_list
 
 Memory:
   mem0ai:

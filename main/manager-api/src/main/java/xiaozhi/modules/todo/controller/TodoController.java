@@ -3,14 +3,7 @@ package xiaozhi.modules.todo.controller;
 import java.util.List;
 
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -128,13 +121,24 @@ public class TodoController {
         String content = request.getContent();
         String agentId = request.getAgentId();
         String deviceId = request.getDeviceId();
-        
+
         if (title == null || title.trim().isEmpty()) {
             return new Result<String>().error("标题不能为空");
         }
-        
+
         TodoEntity entity = todoService.createByVoice(title, content, user.getId(), agentId, deviceId);
         return new Result<String>().ok(entity.getId());
+    }
+
+    @GetMapping("/device/list")
+    @Operation(summary = "设备端查询待办列表（小智设备调用）- 返回未完成的待办")
+    public Result<List<TodoVO>> getDeviceTodoList(
+            @RequestParam(required = false) String agentId,
+            @RequestParam(required = false) String deviceId,
+            @RequestParam(defaultValue = "10") Integer limit) {
+        UserDetail user = SecurityUser.getUser();
+        List<TodoVO> list = todoService.getDeviceTodoList(user.getId(), agentId, deviceId, limit);
+        return new Result<List<TodoVO>>().ok(list);
     }
 
     /**
