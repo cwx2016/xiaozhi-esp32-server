@@ -57,9 +57,16 @@ class ServerPluginExecutor(ToolExecutor):
         necessary_functions = ["handle_exit_intent", "get_lunar"]
 
         # 获取配置中的函数
-        config_functions = self.config["Intent"][
-            self.config["selected_module"]["Intent"]
-        ].get("functions", [])
+        intent_type = self.config["selected_module"]["Intent"]
+        intent_config = self.config["Intent"].get(intent_type, {})
+        config_functions = intent_config.get("functions", [])
+        
+        # 调试日志
+        from config.logger import setup_logging
+        logger = setup_logging()
+        logger.info(f"[DEBUG] Intent类型: {intent_type}")
+        logger.info(f"[DEBUG] Intent配置: {intent_config}")
+        logger.info(f"[DEBUG] 配置的函数列表: {config_functions}")
 
         # 转换为列表
         if not isinstance(config_functions, list):
@@ -70,6 +77,8 @@ class ServerPluginExecutor(ToolExecutor):
 
         # 合并所有需要的函数
         all_required_functions = list(set(necessary_functions + config_functions))
+        
+        logger.info(f"[DEBUG] 最终需要加载的函数: {all_required_functions}")
 
         for func_name in all_required_functions:
             func_item = all_function_registry.get(func_name)
@@ -92,6 +101,8 @@ class ServerPluginExecutor(ToolExecutor):
                     description=func_item.description,
                     tool_type=ToolType.SERVER_PLUGIN,
                 )
+            else:
+                logger.warning(f"[DEBUG] 函数 '{func_name}' 未在注册表中找到")
 
         return tools
 

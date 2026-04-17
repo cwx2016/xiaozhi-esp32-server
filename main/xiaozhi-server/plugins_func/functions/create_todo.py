@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 from config.logger import setup_logging
 from plugins_func.register import register_function, ToolType, ActionResponse, Action
@@ -16,33 +16,33 @@ CREATE_TODO_FUNCTION_DESC = {
     "function": {
         "name": "create_todo",
         "description": (
-            "创建待办事项，用于记录用户需要完成的任务或提醒。"
-            "当用户说'提醒我...'、'帮我记住...'、'明天要...'等表达时调用此函数。"
-            "可以智能解析时间信息（如：明天、后天、下周一、10点、下午3点等）和重复类型（每天、每周、每月）。"
+            "创建待办事项提醒。当用户表达需要记住某事、提醒做某事、安排任务时使用。"
+            "例如：'明天10点提醒我买蔬菜'、'帮我记住下午开会'、'后天要去医院'等。"
+            "可以解析时间信息（明天、后天、下周一、10点、下午3点等）和重复类型（每天、每周、每月）。"
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "title": {
                     "type": "string",
-                    "description": "待办事项的标题，简洁明了地描述任务内容，例如：买蔬菜、开会、健身等",
+                    "description": "待办事项的标题或主要内容，例如：买蔬菜、开会、健身。从用户话语中提取核心任务。",
                 },
                 "content": {
                     "type": "string",
-                    "description": "待办事项的详细内容或备注信息，可选参数",
+                    "description": "待办的详细说明或备注，可选。如果用户没有提供额外信息，可以为空字符串。",
                 },
                 "due_date": {
                     "type": "string",
-                    "description": "截止时间，格式为YYYY-MM-DD HH:mm:ss，如果用户没有指定具体时间，可以根据相对时间推算，可选参数",
+                    "description": "截止时间，格式为YYYY-MM-DD HH:mm:ss。如果用户提到时间（如明天10点），需要解析并填入；如果没有提到时间，可以不传或传null。",
                 },
                 "priority": {
                     "type": "string",
-                    "description": "优先级：high(高)、medium(中)、low(低)，默认为medium",
+                    "description": "优先级：high(高/紧急/重要)、medium(中/普通)、low(低)。默认为medium。如果用户说'紧急'、'重要'则设为high。",
                     "enum": ["high", "medium", "low"],
                 },
                 "repeat_type": {
                     "type": "string",
-                    "description": "重复类型：none(不重复)、daily(每天)、weekly(每周)、monthly(每月)，默认为none",
+                    "description": "重复类型：none(不重复/一次性)、daily(每天/每日)、weekly(每周)、monthly(每月)。如果用户说'每天'、'每周'等，设置对应值；否则为none。",
                     "enum": ["none", "daily", "weekly", "monthly"],
                 },
             },
@@ -66,17 +66,14 @@ def parse_relative_time(time_str: str) -> str:
     # 解析日期部分
     target_date = now.date()
     
-    # 处理"明天"
+    # 处理“明天”
     if "明天" in time_str or "明日" in time_str:
-        from datetime import timedelta
         target_date = now.date() + timedelta(days=1)
-    # 处理"后天"
+    # 处理“后天”
     elif "后天" in time_str:
-        from datetime import timedelta
         target_date = now.date() + timedelta(days=2)
-    # 处理"下周一"到"下周日"
+    # 处理“下周一”到“下周日”
     elif re.search(r'下[周一二三四五六日]', time_str):
-        from datetime import timedelta
         weekday_map = {
             '一': 0, '二': 1, '三': 2, '四': 3, 
             '五': 4, '六': 5, '日': 6, '天': 6
@@ -89,9 +86,8 @@ def parse_relative_time(time_str: str) -> str:
                 days_ahead += 7
             days_ahead += 7  # 再加一周
             target_date = now.date() + timedelta(days=days_ahead)
-    # 处理"下周"
+    # 处理“下周”
     elif "下周" in time_str:
-        from datetime import timedelta
         days_ahead = 7 - now.weekday() + 7
         target_date = now.date() + timedelta(days=days_ahead)
     
