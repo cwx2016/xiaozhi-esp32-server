@@ -692,10 +692,15 @@ class ConnectionHandler:
                 plugin_from_server = private_config.get("plugins", {})
                 for plugin, config_str in plugin_from_server.items():
                     plugin_from_server[plugin] = json.loads(config_str)
-                self.config["plugins"] = plugin_from_server
+                
+                # 合并插件配置：保留config.yaml中的默认配置，用数据库配置覆盖
+                default_plugins = self.config.get("plugins", {})
+                merged_plugins = {**default_plugins, **plugin_from_server}
+                self.config["plugins"] = merged_plugins
+                
                 self.config["Intent"][self.config["selected_module"]["Intent"]][
                     "functions"
-                ] = plugin_from_server.keys()
+                ] = merged_plugins.keys()
         if private_config.get("prompt", None) is not None:
             self.config["prompt"] = private_config["prompt"]
         # 获取声纹信息
@@ -997,7 +1002,7 @@ class ConnectionHandler:
                     if content is not None and len(content) > 0:
                         content_arguments += content
 
-                    if not tool_call_flag and content_arguments.startswith("<tool_call>"):
+                    if not tool_call_flag and content_arguments.startswith(""):
                         # print("content_arguments", content_arguments)
                         tool_call_flag = True
 

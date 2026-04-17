@@ -174,8 +174,8 @@ plugins:
   # 创建待办事项插件的配置
   create_todo:
     # manager-api的地址，用于调用待办创建接口
-    # 注意：manager-api默认端口是8080，完整路径为 http://localhost:8080/todo/voice/create
-    manager_api_url: "http://localhost:8080"
+    # 注意：manager-api默认端口是8002，完整路径为 http://localhost:8002/xiaozhi/todo/voice/create
+    manager_api_url: "http://localhost:8002"
     # API密钥（如果manager-api需要认证）
     api_key: ""
 # 声纹识别配置
@@ -752,7 +752,7 @@ TTS:
     # 火山引擎语音合成服务，需要先在火山引擎控制台创建应用并获取appid和access_token
     # 山引擎语音一定要购买花钱，起步价30元，就有100并发了。如果用免费的只有2个并发，会经常报tts错误
     # 购买服务后，购买免费的音色后，可能要等半小时左右，才能使用。
-    # 普通音色在这里开通：https://console.volcengine.com/speech/service/8
+    # 普通音色在这里开通：https://console.volcengine.com/services/cbm 开通
     # 湾湾小何音色在这里开通：https://console.volcengine.com/speech/service/10007，开通后将下面的voice设置成zh_female_wanwanxiaohe_moon_bigtts
     api_url: https://openspeech.bytedance.com/api/v1/tts
     voice: BV001_streaming

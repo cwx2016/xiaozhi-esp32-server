@@ -162,9 +162,29 @@ def create_todo(
     """
     try:
         # 获取manager-api的配置
-        todo_config = conn.config.get("plugins", {}).get("create_todo", {})
-        manager_api_url = todo_config.get("manager_api_url", "http://localhost:8080")
+        plugins_config = conn.config.get("plugins", {})
+        todo_config = plugins_config.get("create_todo", {})
+        
+        # 调试日志：输出完整的配置信息
+        logger.bind(tag=TAG).info(f"plugins配置: {list(plugins_config.keys())}")
+        logger.bind(tag=TAG).info(f"create_todo配置: {todo_config}")
+        
+        manager_api_url = todo_config.get("manager_api_url", "http://localhost:8002")
         api_key = todo_config.get("api_key", "")
+        
+        # 强制修正错误的端口配置（兜底逻辑）
+        # 支持的错误端口列表：8080, 8082 等常见错误
+        incorrect_ports = [":8080", ":8082", ":8088", ":9090"]
+        for incorrect_port in incorrect_ports:
+            if incorrect_port in manager_api_url:
+                correct_url = manager_api_url.replace(incorrect_port, ":8002")
+                logger.bind(tag=TAG).warning(f"检测到错误的端口{incorrect_port}，自动修正为8002")
+                logger.bind(tag=TAG).warning(f"原URL: {manager_api_url}")
+                logger.bind(tag=TAG).warning(f"修正后: {correct_url}")
+                manager_api_url = correct_url
+                break
+        
+        logger.bind(tag=TAG).info(f"最终使用的manager_api_url: {manager_api_url}")
         
         if not manager_api_url or "你" in manager_api_url:
             return ActionResponse(
@@ -173,8 +193,9 @@ def create_todo(
                 None
             )
         
-        # 构建请求URL - TodoController的路径是 /todo/voice/create
-        url = f"{manager_api_url}/todo/voice/create"
+        # 构建请求URL - TodoController的路径是 /xiaozhi/todo/voice/create
+        # 注意：manager-api的context-path是/xiaozhi
+        url = f"{manager_api_url}/xiaozhi/todo/voice/create"
         
         # 构建请求头
         headers = {
@@ -191,17 +212,17 @@ def create_todo(
             "deviceId": getattr(conn, 'device_id', '')
         }
         
-        # 如果有截止时间，添加到payload
-        if due_date:
-            payload["dueDate"] = due_date
+        # 如果有截止时间，添加到payload（注意：当前VoiceTodoRequest不支持这些字段，需要扩展）
+        # if due_date:
+        #     payload["dueDate"] = due_date
         
         # 如果有优先级，添加到payload
-        if priority and priority != "medium":
-            payload["priority"] = priority
+        # if priority and priority != "medium":
+        #     payload["priority"] = priority
         
         # 如果有重复类型，添加到payload
-        if repeat_type and repeat_type != "none":
-            payload["repeatType"] = repeat_type
+        # if repeat_type and repeat_type != "none":
+        #     payload["repeatType"] = repeat_type
         
         logger.bind(tag=TAG).info(f"调用待办创建接口: {url}, 参数: {payload}")
         

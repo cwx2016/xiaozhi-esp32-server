@@ -85,6 +85,9 @@ public class ShiroConfig {
         filterMap.put("/user/pub-config", "anon");
         filterMap.put("/user/register", "anon");
         filterMap.put("/user/retrieve-password", "anon");
+        // 待办事项接口 - 允许小智服务器内部调用（匿名访问）
+        filterMap.put("/todo/voice/create", "anon");
+        filterMap.put("/todo/device/list", "anon");
         // 将config路径使用server服务过滤器
         filterMap.put("/config/**", "server");
         filterMap.put("/agent/chat-history/report", "server");

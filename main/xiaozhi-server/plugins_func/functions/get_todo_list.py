@@ -44,8 +44,26 @@ def get_todo_list(conn: "ConnectionHandler", limit: int = 10):
     try:
         # 获取manager-api的配置
         todo_config = conn.config.get("plugins", {}).get("create_todo", {})
-        manager_api_url = todo_config.get("manager_api_url", "http://localhost:8080")
+        
+        # 调试日志
+        logger.bind(tag=TAG).info(f"get_todo_list - create_todo配置: {todo_config}")
+        
+        manager_api_url = todo_config.get("manager_api_url", "http://localhost:8002")
         api_key = todo_config.get("api_key", "")
+        
+        # 强制修正错误的端口配置（兜底逻辑）
+        # 支持的错误端口列表：8080, 8082 等常见错误
+        incorrect_ports = [":8080", ":8082", ":8088", ":9090"]
+        for incorrect_port in incorrect_ports:
+            if incorrect_port in manager_api_url:
+                correct_url = manager_api_url.replace(incorrect_port, ":8002")
+                logger.bind(tag=TAG).warning(f"get_todo_list - 检测到错误的端口{incorrect_port}，自动修正为8002")
+                logger.bind(tag=TAG).warning(f"原URL: {manager_api_url}")
+                logger.bind(tag=TAG).warning(f"修正后: {correct_url}")
+                manager_api_url = correct_url
+                break
+        
+        logger.bind(tag=TAG).info(f"get_todo_list - 最终使用的manager_api_url: {manager_api_url}")
         
         if not manager_api_url or "你" in manager_api_url:
             return ActionResponse(
@@ -54,8 +72,9 @@ def get_todo_list(conn: "ConnectionHandler", limit: int = 10):
                 None
             )
         
-        # 构建请求URL
-        url = f"{manager_api_url}/todo/device/list"
+        # 构建请求URL - TodoController的路径是 /xiaozhi/todo/device/list
+        # 注意：manager-api的context-path是/xiaozhi
+        url = f"{manager_api_url}/xiaozhi/todo/device/list"
         
         # 构建请求参数
         params = {

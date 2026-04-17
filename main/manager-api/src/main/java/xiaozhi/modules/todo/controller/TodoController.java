@@ -2,6 +2,7 @@ package xiaozhi.modules.todo.controller;
 
 import java.util.List;
 
+import jakarta.annotation.security.PermitAll;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
 
@@ -115,8 +116,12 @@ public class TodoController {
 
     @PostMapping("/voice/create")
     @Operation(summary = "语音创建待办（小智调用）- 智能解析重复类型、日期时间等")
+    @PermitAll  // 允许匿名访问，小智服务器内部调用不需要认证
     public Result<String> createByVoice(@RequestBody VoiceTodoRequest request) {
-        UserDetail user = SecurityUser.getUser();
+        // 注意：由于是匿名访问，这里不能使用 SecurityUser.getUser()
+        // 使用默认的系统用户ID（需要根据实际情况调整）
+        Long userId = getUserIdFromRequest(request);
+        
         String title = request.getTitle();
         String content = request.getContent();
         String agentId = request.getAgentId();
@@ -126,19 +131,40 @@ public class TodoController {
             return new Result<String>().error("标题不能为空");
         }
 
-        TodoEntity entity = todoService.createByVoice(title, content, user.getId(), agentId, deviceId);
+        TodoEntity entity = todoService.createByVoice(title, content, userId, agentId, deviceId);
         return new Result<String>().ok(entity.getId());
     }
 
     @GetMapping("/device/list")
     @Operation(summary = "设备端查询待办列表（小智设备调用）- 返回未完成的待办")
+    @PermitAll  // 允许匿名访问，小智服务器内部调用不需要认证
     public Result<List<TodoVO>> getDeviceTodoList(
             @RequestParam(required = false) String agentId,
             @RequestParam(required = false) String deviceId,
             @RequestParam(defaultValue = "10") Integer limit) {
-        UserDetail user = SecurityUser.getUser();
-        List<TodoVO> list = todoService.getDeviceTodoList(user.getId(), agentId, deviceId, limit);
+        // 注意：由于是匿名访问，这里不能使用 SecurityUser.getUser()
+        Long userId = getUserIdFromDeviceId(deviceId);
+        List<TodoVO> list = todoService.getDeviceTodoList(userId, agentId, deviceId, limit);
         return new Result<List<TodoVO>>().ok(list);
+    }
+
+    /**
+     * 从请求中获取用户ID
+     * 如果是内部调用，可以根据 deviceId 或 agentId 查找对应的用户
+     */
+    private Long getUserIdFromRequest(VoiceTodoRequest request) {
+        // TODO: 实现根据 deviceId 或 agentId 查找用户的逻辑
+        // 暂时返回一个默认的系统用户ID（需要根据实际数据库中的用户ID调整）
+        return 2044689255952371714L;
+    }
+
+    /**
+     * 根据 deviceId 获取用户ID
+     */
+    private Long getUserIdFromDeviceId(String deviceId) {
+        // TODO: 实现根据 deviceId 查找用户的逻辑
+        // 暂时返回一个默认的系统用户ID（需要根据实际数据库中的用户ID调整）
+        return 2044689255952371714L;
     }
 
     /**
