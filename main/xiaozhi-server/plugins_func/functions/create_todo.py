@@ -216,8 +216,8 @@ def create_todo(
         if due_date:
             payload["dueDate"] = due_date
         
-        # 如果有优先级且不是默认的medium，添加到payload
-        if priority and priority != "medium":
+        # 如果有优先级且不是默认的low，添加到payload
+        if priority and priority != "low":
             payload["priority"] = priority
         
         # 如果有重复类型且不是默认的none，添加到payload

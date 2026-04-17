@@ -1,6 +1,5 @@
 package xiaozhi.modules.todo.service.impl;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -169,39 +168,63 @@ public class TodoServiceImpl extends BaseServiceImpl<TodoDao, TodoEntity> implem
         // 优先使用前端传递的参数，如果没有则使用智能解析的结果
         // 设置优先级：前端传递 > 智能解析 > 默认0（普通）
         if (priority != null && !priority.isEmpty()) {
-            // 将字符串转换为Integer：high->2, medium->0, low->0
+            // 将字符串转换为Integer：high->2, medium->1, low->0
             Integer priorityValue = convertPriorityToInt(priority);
             entity.setPriority(priorityValue);
         } else {
             entity.setPriority(parseResult.getPriority() != null ? parseResult.getPriority() : 0);
         }
         
-        // 设置截止日期：前端传递 > 智能解析
+        // 设置截止日期和时间：前端传递 > 智能解析
         if (dueDate != null && !dueDate.isEmpty()) {
             try {
                 // 解析日期时间字符串：YYYY-MM-DD HH:mm:ss 或 YYYY-MM-DD
                 String dateStr = dueDate;
+                String timeStr = null;
+                
                 if (dueDate.contains(" ")) {
-                    // 如果包含时间部分，只取日期部分
-                    dateStr = dueDate.split(" ")[0];
+                    // 如果包含时间部分，分离日期和时间
+                    String[] parts = dueDate.split(" ", 2);
+                    dateStr = parts[0];
+                    if (parts.length > 1) {
+                        // 提取时间部分，格式可能是 HH:mm:ss 或 HH:mm
+                        String fullTime = parts[1];
+                        if (fullTime.contains(":")) {
+                            // 只取前两位时间（HH:mm）
+                            String[] timeParts = fullTime.split(":");
+                            if (timeParts.length >= 2) {
+                                timeStr = timeParts[0] + ":" + timeParts[1];
+                            }
+                        }
+                    }
                 }
+                
                 // 验证日期格式是否为 YYYY-MM-DD
                 if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
                     entity.setDueDate(dateStr);
+                    // 如果有时间部分，设置 dueTime
+                    if (timeStr != null && !timeStr.isEmpty()) {
+                        entity.setDueTime(timeStr);
+                        log.info("从dueDate中提取时间: {}", timeStr);
+                    } else {
+                        // 如果没有时间部分，使用智能解析的结果
+                        entity.setDueTime(parseResult.getDueTime());
+                    }
                 } else {
                     log.warn("dueDate格式不正确: {}, 使用智能解析结果", dueDate);
                     entity.setDueDate(parseResult.getDueDate());
+                    entity.setDueTime(parseResult.getDueTime());
                 }
             } catch (Exception e) {
                 // 如果解析失败，使用智能解析的结果
                 entity.setDueDate(parseResult.getDueDate());
+                entity.setDueTime(parseResult.getDueTime());
                 log.warn("解析dueDate失败: {}, 使用智能解析结果", dueDate, e);
             }
         } else {
             entity.setDueDate(parseResult.getDueDate());
+            entity.setDueTime(parseResult.getDueTime());
         }
-        
-        entity.setDueTime(parseResult.getDueTime());
         
         // 设置重复类型：前端传递 > 智能解析 > 默认none
         if (repeatType != null && !repeatType.isEmpty()) {
@@ -222,24 +245,24 @@ public class TodoServiceImpl extends BaseServiceImpl<TodoDao, TodoEntity> implem
     }
 
     /**
-     * 将优先级字符串转换为Integer
-     * high -> 2 (紧急)
-     * medium -> 0 (普通)
-     * low -> 0 (普通，与medium相同)
+     * 将优先级字符串转换为整数
+     * @param priority 优先级字符串 (high, medium, low)
+     * @return 优先级整数 (2, 1, 0)
      */
     private Integer convertPriorityToInt(String priority) {
-        if (priority == null || priority.isEmpty()) {
+        if (priority == null) {
             return 0;
         }
         switch (priority.toLowerCase()) {
             case "high":
-                return 2; // 紧急
+            case "紧急":
+                return 2;
             case "medium":
-                return 0; // 普通
+            case "重要":
+                return 1;
             case "low":
-                return 0; // 普通
+            case "普通":
             default:
-                log.warn("未知的优先级值: {}, 使用默认值0", priority);
                 return 0;
         }
     }
