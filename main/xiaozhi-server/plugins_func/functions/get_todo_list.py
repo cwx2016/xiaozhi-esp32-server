@@ -115,28 +115,50 @@ def get_todo_list(conn: "ConnectionHandler", limit: int = 10):
                 todo_text = f"您有{len(todo_list)}个待办事项：\n\n"
                 for i, todo in enumerate(todo_list, 1):
                     title = todo.get("title", "")
+                    content = todo.get("content", "")
                     due_date = todo.get("dueDate", "")
                     due_time = todo.get("dueTime", "")
                     priority = todo.get("priority", 0)
+                    repeat_type = todo.get("repeatType", "none")
                     
-                    # 优先级标识
-                    priority_icon = ""
+                    # 优先级标识（使用中文）
+                    priority_text = ""
                     if priority == 2:
-                        priority_icon = "🔴 "
+                        priority_text = "【紧急】"
                     elif priority == 1:
-                        priority_icon = "🟡 "
-                    else:
-                        priority_icon = "⚪ "
+                        priority_text = "【重要】"
                     
                     # 时间信息
                     time_info = ""
                     if due_date:
-                        time_info = f" ({due_date}"
                         if due_time:
-                            time_info += f" {due_time}"
-                        time_info += ")"
+                            time_info = f"{due_date} {due_time}"
+                        else:
+                            time_info = due_date
+                    else:
+                        if due_time:
+                            time_info = due_time
+                        else:
+                            time_info = "未设置时间"
                     
-                    todo_text += f"{i}. {priority_icon}{title}{time_info}\n"
+                    # 重复类型标识
+                    repeat_text = ""
+                    if repeat_type == "daily":
+                        repeat_text = " (每天)"
+                    elif repeat_type == "weekly":
+                        repeat_text = " (每周)"
+                    elif repeat_type == "monthly":
+                        repeat_text = " (每月)"
+                    elif repeat_type == "yearly":
+                        repeat_text = " (每年)"
+                    
+                    # 组合显示：优先级 + 标题 + 内容 + 时间 + 重复类型
+                    display_content = f"{i}. {priority_text}{title}"
+                    if content:
+                        display_content += f" - {content}"
+                    display_content += f"\n   时间：{time_info}{repeat_text}\n\n"
+                    
+                    todo_text += display_content
                 
                 # 通过WebSocket推送待办数据到设备
                 device_todos = []
