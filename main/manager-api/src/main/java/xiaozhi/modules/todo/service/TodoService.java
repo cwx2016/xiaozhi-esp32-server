@@ -54,8 +54,18 @@ public interface TodoService extends BaseService<TodoEntity> {
     /**
      * 语音创建待办（小智调用）
      * 支持智能解析：重复类型、日期时间等
+     * 
+     * @param title      标题
+     * @param content    内容
+     * @param userId     用户ID
+     * @param agentId    智能体ID
+     * @param deviceId   设备ID
+     * @param dueDate    截止时间（可选，格式：YYYY-MM-DD HH:mm:ss）
+     * @param priority   优先级（可选：high/medium/low）
+     * @param repeatType 重复类型（可选：none/daily/weekly/monthly）
      */
-    TodoEntity createByVoice(String title, String content, Long userId, String agentId, String deviceId);
+    TodoEntity createByVoice(String title, String content, Long userId, String agentId, String deviceId, 
+                            String dueDate, String priority, String repeatType);
 
     /**
      * 批量删除待办事项（逻辑删除）

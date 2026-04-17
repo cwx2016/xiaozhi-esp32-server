@@ -126,12 +126,15 @@ public class TodoController {
         String content = request.getContent();
         String agentId = request.getAgentId();
         String deviceId = request.getDeviceId();
+        String dueDate = request.getDueDate();
+        String priority = request.getPriority();
+        String repeatType = request.getRepeatType();
 
         if (title == null || title.trim().isEmpty()) {
             return new Result<String>().error("标题不能为空");
         }
 
-        TodoEntity entity = todoService.createByVoice(title, content, userId, agentId, deviceId);
+        TodoEntity entity = todoService.createByVoice(title, content, userId, agentId, deviceId, dueDate, priority, repeatType);
         return new Result<String>().ok(entity.getId());
     }
 
@@ -175,6 +178,9 @@ public class TodoController {
         private String content;
         private String agentId;
         private String deviceId;
+        private String dueDate;      // 截止时间，格式：YYYY-MM-DD HH:mm:ss
+        private String priority;     // 优先级：high/medium/low
+        private String repeatType;   // 重复类型：none/daily/weekly/monthly
 
         public String getTitle() {
             return title;
@@ -206,6 +212,30 @@ public class TodoController {
 
         public void setDeviceId(String deviceId) {
             this.deviceId = deviceId;
+        }
+
+        public String getDueDate() {
+            return dueDate;
+        }
+
+        public void setDueDate(String dueDate) {
+            this.dueDate = dueDate;
+        }
+
+        public String getPriority() {
+            return priority;
+        }
+
+        public void setPriority(String priority) {
+            this.priority = priority;
+        }
+
+        public String getRepeatType() {
+            return repeatType;
+        }
+
+        public void setRepeatType(String repeatType) {
+            this.repeatType = repeatType;
         }
     }
 }

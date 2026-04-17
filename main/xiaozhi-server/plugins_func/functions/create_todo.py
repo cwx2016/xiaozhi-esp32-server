@@ -212,17 +212,17 @@ def create_todo(
             "deviceId": getattr(conn, 'device_id', '')
         }
         
-        # 如果有截止时间，添加到payload（注意：当前VoiceTodoRequest不支持这些字段，需要扩展）
-        # if due_date:
-        #     payload["dueDate"] = due_date
+        # 如果有截止时间，添加到payload
+        if due_date:
+            payload["dueDate"] = due_date
         
-        # 如果有优先级，添加到payload
-        # if priority and priority != "medium":
-        #     payload["priority"] = priority
+        # 如果有优先级且不是默认的medium，添加到payload
+        if priority and priority != "medium":
+            payload["priority"] = priority
         
-        # 如果有重复类型，添加到payload
-        # if repeat_type and repeat_type != "none":
-        #     payload["repeatType"] = repeat_type
+        # 如果有重复类型且不是默认的none，添加到payload
+        if repeat_type and repeat_type != "none":
+            payload["repeatType"] = repeat_type
         
         logger.bind(tag=TAG).info(f"调用待办创建接口: {url}, 参数: {payload}")
         
