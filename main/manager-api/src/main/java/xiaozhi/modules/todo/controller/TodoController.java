@@ -114,6 +114,30 @@ public class TodoController {
         return new Result<>();
     }
 
+    @PutMapping("/device/{id}/complete")
+    @Operation(summary = "设备端标记为已完成（小智调用）- 允许匿名访问")
+    @PermitAll  // 允许匿名访问，小智服务器内部调用不需要认证
+    public Result<Void> completeByDevice(@PathVariable String id,
+                                         @RequestParam(required = false) String agentId,
+                                         @RequestParam(required = false) String deviceId) {
+        // 注意：由于是匿名访问，这里不能使用 SecurityUser.getUser()
+        Long userId = getUserIdFromDeviceId(deviceId);
+        todoService.complete(id, userId);
+        return new Result<>();
+    }
+
+    @DeleteMapping("/device/{id}")
+    @Operation(summary = "设备端删除待办事项（小智调用）- 允许匿名访问")
+    @PermitAll  // 允许匿名访问，小智服务器内部调用不需要认证
+    public Result<Void> deleteByDevice(@PathVariable String id,
+                                       @RequestParam(required = false) String agentId,
+                                       @RequestParam(required = false) String deviceId) {
+        // 注意：由于是匿名访问，这里不能使用 SecurityUser.getUser()
+        Long userId = getUserIdFromDeviceId(deviceId);
+        todoService.delete(id, userId);
+        return new Result<>();
+    }
+
     @PostMapping("/voice/create")
     @Operation(summary = "语音创建待办（小智调用）- 智能解析重复类型、日期时间等")
     @PermitAll  // 允许匿名访问，小智服务器内部调用不需要认证

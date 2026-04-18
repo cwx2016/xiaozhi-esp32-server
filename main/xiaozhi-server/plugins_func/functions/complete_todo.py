@@ -99,13 +99,21 @@ def complete_todo(conn: "ConnectionHandler", todo_id: str = None, title: str = N
         if not todo_id:
             return ActionResponse(Action.REQLLM, "请提供待办ID或标题，例如：'完成买菜的待办'", None)
         
-        # 调用完成接口
-        complete_url = f"{manager_api_url}/xiaozhi/todo/{todo_id}/complete"
+        # 调用完成接口（使用设备端专用接口）
+        complete_url = f"{manager_api_url}/xiaozhi/todo/device/{todo_id}/complete"
+        
+        # 添加查询参数
+        params = {}
+        if hasattr(conn, 'agent_id') and conn.agent_id:
+            params["agentId"] = conn.agent_id
+        if hasattr(conn, 'device_id') and conn.device_id:
+            params["deviceId"] = conn.device_id
+        
         headers = {}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
         
-        response = requests.put(complete_url, headers=headers, timeout=10)
+        response = requests.put(complete_url, params=params, headers=headers, timeout=10)
         
         if response.status_code == 200:
             result = response.json()

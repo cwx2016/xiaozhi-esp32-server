@@ -284,6 +284,8 @@ Intent:
       # 待办事项功能
       - create_todo
       - get_todo_list
+      - complete_todo
+      - delete_todo
 
 Memory:
   mem0ai:
