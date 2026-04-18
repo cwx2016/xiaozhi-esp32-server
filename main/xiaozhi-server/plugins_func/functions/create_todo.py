@@ -11,6 +11,91 @@ if TYPE_CHECKING:
 TAG = __name__
 logger = setup_logging()
 
+
+def get_todo_list_after_action(conn: "ConnectionHandler", manager_api_url: str, api_key: str = "", limit: int = 10) -> list:
+    """
+    获取待办列表的辅助函数
+    :param conn: 连接对象
+    :param manager_api_url: API地址
+    :param api_key: API密钥
+    :param limit: 返回数量限制
+    :return: 待办列表
+    """
+    try:
+        query_url = f"{manager_api_url}/xiaozhi/todo/device/list"
+        params = {"limit": limit}
+        
+        # 添加agentId和deviceId参数
+        if hasattr(conn, 'agent_id') and conn.agent_id:
+            params["agentId"] = conn.agent_id
+        if hasattr(conn, 'device_id') and conn.device_id:
+            params["deviceId"] = conn.device_id
+        
+        headers = {}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        
+        response = requests.get(query_url, params=params, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            result = response.json()
+            if result.get("code") == 0:
+                return result.get("data", [])
+        return []
+    except Exception as e:
+        logger.bind(tag=TAG).error(f"获取待办列表失败: {e}")
+        return []
+
+
+def push_todo_list_to_device(conn: "ConnectionHandler", todo_list: list):
+    """
+    推送待办列表到设备端显示
+    :param conn: 连接对象
+    :param todo_list: 待办列表数据
+    """
+    try:
+        # 转换为设备端格式
+        device_todos = []
+        for todo in todo_list:
+            device_todo = {
+                "id": todo.get("id"),
+                "title": todo.get("title", ""),
+                "content": todo.get("content", ""),
+                "dueDate": todo.get("dueDate", ""),
+                "dueTime": todo.get("dueTime", ""),
+                "priority": todo.get("priority", 0),
+                "repeatType": todo.get("repeatType", "none"),
+            }
+            device_todos.append(device_todo)
+        
+        # 构建推送消息
+        push_message = {
+            "type": "todo",
+            "action": "list",
+            "count": len(device_todos),
+            "todos": device_todos,
+            "session_id": getattr(conn, 'session_id', '')
+        }
+        
+        import json
+        import asyncio
+        
+        # 异步推送消息
+        async def push_to_device():
+            try:
+                if hasattr(conn, 'websocket') and conn.websocket:
+                    await conn.websocket.send(json.dumps(push_message, ensure_ascii=False))
+                    logger.bind(tag=TAG).info(f"已推送{len(device_todos)}个待办到设备")
+            except Exception as e:
+                logger.bind(tag=TAG).error(f"推送待办到设备失败: {e}")
+        
+        # 在事件循环中执行
+        if hasattr(conn, 'loop') and conn.loop:
+            asyncio.run_coroutine_threadsafe(push_to_device(), conn.loop)
+    except Exception as e:
+        logger.bind(tag=TAG).error(f"推送待办列表异常: {e}")
+
+
 CREATE_TODO_FUNCTION_DESC = {
     "type": "function",
     "function": {
@@ -233,11 +318,31 @@ def create_todo(
             result = response.json()
             if result.get("code") == 0:
                 todo_id = result.get("data")
+                
+                # 获取更新后的待办列表
+                todo_list = get_todo_list_after_action(conn, manager_api_url, api_key)
+                
+                # 推送待办列表到设备端显示
+                if todo_list:
+                    push_todo_list_to_device(conn, todo_list)
+                
+                # 构建简洁的回复文本（不包含格式化列表，避免TTS拆分）
                 success_msg = f"已为您创建待办事项：{title}"
                 if due_date:
-                    success_msg += f"，截止时间：{due_date}"
-                logger.bind(tag=TAG).info(f"待办创建成功，ID: {todo_id}")
-                return ActionResponse(Action.REQLLM, success_msg, None)
+                    # 提取日期和时间部分，简化显示
+                    try:
+                        dt = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+                        success_msg += f"，{dt.strftime('%m月%d日%H点%M分')}"
+                    except:
+                        success_msg += f"，{due_date[:16]}"
+                
+                # 添加待办数量提示
+                if todo_list:
+                    remaining = len(todo_list)
+                    success_msg += f"。当前还有{remaining}个待办事项"
+                
+                # 使用 RESPONSE action 直接返回，不让 LLM 重新生成回复
+                return ActionResponse(Action.RESPONSE, None, success_msg)
             else:
                 error_msg = result.get("msg", "创建待办失败")
                 logger.bind(tag=TAG).error(f"待办创建失败: {error_msg}")
