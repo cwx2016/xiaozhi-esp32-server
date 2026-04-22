@@ -47,8 +47,8 @@ class App {
         await this.checkMicrophoneAvailability();
         // 检查摄像头可用性
         this.checkCameraAvailability();
-        // 初始化Live2D
-        await this.initLive2D();
+        // 初始化Live2D - DISABLED (模型加载已禁用)
+        // await this.initLive2D();
         // 初始化摄像头
         this.initCamera();
         // 关闭加载loading

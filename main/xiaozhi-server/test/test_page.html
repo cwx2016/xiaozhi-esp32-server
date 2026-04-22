@@ -66,9 +66,9 @@
             </div>
         </div>
 
-        <!-- 模型加载提示 -->
-        <div class="model-container">
-            <div class="model-loading" id="modelLoading">
+        <!-- 模型加载提示 - DISABLED (模型加载已禁用) -->
+        <div class="model-container" style="display: none;">
+            <div class="model-loading" id="modelLoading" style="display: none;">
                 <div class="loading-char-float">
                     <div class="main-char">
                         <span>模</span><span>型</span><span>加</span><span>载</span><span>中</span><span>✨</span>
@@ -78,8 +78,8 @@
             </div>
         </div>
 
-        <!-- Live2D Canvas 容器 -->
-        <canvas id="live2d-stage"></canvas>
+        <!-- Live2D Canvas 容器 - DISABLED (模型加载已禁用) -->
+        <canvas id="live2d-stage" style="display: none;"></canvas>
 
         <!-- 聊天消息流（弹幕样式） -->
         <div class="chat-container">
@@ -208,15 +208,6 @@
                         <div class="control-panel">
                             <div class="config-row">
                                 <div class="config-item">
-                                    <label>选择模型:</label>
-                                    <select id="live2dModelSelect" class="model-select">
-                                        <option value="hiyori_pro_zh">hiyori (春日)</option>
-                                        <option value="natori_pro_zh">natori (名取)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="config-row">
-                                <div class="config-item">
                                     <label></label>
                                     <button class="background-btn" id="backgroundBtn" title="切换背景">
                                         <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -227,6 +218,18 @@
                                     </button>
                                 </div>
                             </div>
+                            <!-- 选择模型功能已隐藏 -->
+                            <!--
+                            <div class="config-row">
+                                <div class="config-item">
+                                    <label>选择模型:</label>
+                                    <select id="live2dModelSelect" class="model-select">
+                                        <option value="hiyori_pro_zh">hiyori (春日)</option>
+                                        <option value="natori_pro_zh">natori (名取)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            -->
                         </div>
                     </div>
                 </div>
