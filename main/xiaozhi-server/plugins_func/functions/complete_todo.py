@@ -208,9 +208,8 @@ def complete_todo(conn: "ConnectionHandler", todo_id: str = None, title: str = N
                 # 获取更新后的待办列表
                 todo_list = get_todo_list_after_action(conn, manager_api_url, api_key)
                 
-                # 推送待办列表到设备端显示
-                if todo_list:
-                    push_todo_list_to_device(conn, todo_list)
+                # 推送待办列表到设备端显示（即使是空列表也要推送，让设备端刷新界面）
+                push_todo_list_to_device(conn, todo_list)
                 
                 # 构建简洁的回复文本（不包含格式化列表，避免TTS拆分）
                 reply_text = "好的，已将待办标记为完成"
