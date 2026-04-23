@@ -90,6 +90,7 @@ public class ShiroConfig {
         filterMap.put("/todo/device/list", "anon");
         filterMap.put("/todo/device/*/complete", "anon");
         filterMap.put("/todo/device/*", "anon");
+        filterMap.put("/todo/getByMacAddress", "anon");
         // 将config路径使用server服务过滤器
         filterMap.put("/config/**", "server");
         filterMap.put("/agent/chat-history/report", "server");

@@ -19,6 +19,9 @@ public class TodoQueryDTO {
     @Schema(description = "设备ID")
     private String deviceId;
 
+    @Schema(description = "设备ID")
+    private String userId;
+
     @Schema(description = "重复类型")
     private String repeatType;
 

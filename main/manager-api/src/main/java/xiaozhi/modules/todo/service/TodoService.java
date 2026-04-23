@@ -83,4 +83,6 @@ public interface TodoService extends BaseService<TodoEntity> {
      * @return 待办列表
      */
     List<TodoVO> getDeviceTodoList(Long userId, String agentId, String deviceId, Integer limit);
+
+    List<TodoVO> listByMacAddress(String macAddress);
 }

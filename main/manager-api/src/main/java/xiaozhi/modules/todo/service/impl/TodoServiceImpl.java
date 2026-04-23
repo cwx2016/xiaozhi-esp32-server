@@ -307,6 +307,22 @@ public class TodoServiceImpl extends BaseServiceImpl<TodoDao, TodoEntity> implem
         return ConvertUtils.sourceToTarget(entities, TodoVO.class);
     }
 
+    @Override
+    public List<TodoVO> listByMacAddress(String macAddress) {
+        QueryWrapper<TodoEntity> wrapper = new QueryWrapper<>();
+        wrapper.eq("deleted", 0);
+        wrapper.eq("status", 0); // 只返回未完成的待办
+        wrapper.eq("device_id", macAddress);
+
+        // 按优先级和创建时间排序
+        wrapper.orderByDesc("priority");
+        wrapper.orderByAsc("due_date", "due_time");
+        wrapper.orderByDesc("create_date");
+
+        List<TodoEntity> entities = todoDao.selectList(wrapper);
+        return ConvertUtils.sourceToTarget(entities, TodoVO.class);
+    }
+
     /**
      * 构建查询条件
      */

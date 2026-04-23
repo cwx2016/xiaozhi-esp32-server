@@ -39,6 +39,14 @@ public class TodoController {
         return new Result<PageData<TodoVO>>().ok(page);
     }
 
+    @GetMapping("/getByMacAddress")
+    @Operation(summary = "查询待办列表")
+    @PermitAll
+    public Result<List<TodoVO>> getByMacAddress(String macAddress) {
+        List<TodoVO> list = todoService.listByMacAddress(macAddress);
+        return new Result<List<TodoVO>>().ok(list);
+    }
+
     @GetMapping("/list")
     @Operation(summary = "查询待办列表")
     @RequiresPermissions("sys:role:normal")
