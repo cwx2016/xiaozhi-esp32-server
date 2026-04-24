@@ -171,6 +171,7 @@ def get_todo_list(conn: "ConnectionHandler", limit: int = 10):
                         "dueTime": todo.get("dueTime", ""),
                         "priority": todo.get("priority", 0),
                         "repeatType": todo.get("repeatType", "none"),
+                        "status": todo.get("status", 0),
                     }
                     device_todos.append(device_todo)
                 

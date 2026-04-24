@@ -63,6 +63,7 @@ def push_todo_list_to_device(conn: "ConnectionHandler", todo_list: list):
                 "dueTime": todo.get("dueTime", ""),
                 "priority": todo.get("priority", 0),
                 "repeatType": todo.get("repeatType", "none"),
+                "status": todo.get("status", 0),
             }
             device_todos.append(device_todo)
         
